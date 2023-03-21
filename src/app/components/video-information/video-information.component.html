@@ -1,0 +1,55 @@
+<!-- eslint-disable @angular-eslint/template/eqeqeq -->
+<ion-header mode="ios">
+  <ion-toolbar class="ion-bg-white">
+    <ion-title>Info</ion-title>
+
+    <ion-buttons *ngIf="deleteable" slot="end" mode="md">
+      <ion-button (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="w-full p-4 border-b border-gray-300 flex items-center space-x-2">
+    <h3 class="text-xs font-semibold">Name</h3>
+    <div class="flex-grow"></div>
+
+    <p class="text-xs text-right">{{ video?.name }}</p>
+  </div>
+
+  <div *ngIf="video?.ctime" class="w-full p-4 border-b border-gray-300 flex items-center space-x-2">
+    <h3 class="text-xs font-semibold">Created At</h3>
+    <div class="flex-grow"></div>
+
+    <p class="text-xs text-right">{{ formatDate(video?.ctime) }}</p>
+  </div>
+
+  <div *ngIf="video?.mtime" class="w-full p-4 border-b border-gray-300 flex items-center space-x-2">
+    <h3 class="text-xs font-semibold">Last Modified</h3>
+    <div class="flex-grow"></div>
+
+    <p class="text-xs text-right">{{ formatDate(video?.mtime) }}</p>
+  </div>
+
+  <div *ngIf="video?.size != null" class="w-full p-4 border-b border-gray-300 flex items-center space-x-2">
+    <h3 class="text-xs font-semibold">Size</h3>
+    <div class="flex-grow"></div>
+
+    <p class="text-xs text-right">{{ formatSize(video?.size) }} MB</p>
+  </div>
+
+  <div class="p-4">
+    <ion-button *ngIf="deleteable" size="sm" expand="block" color="danger" (click)="dismiss('delete-video')">
+      Delete
+      <ion-icon slot="end" name="trash"></ion-icon>
+    </ion-button>
+
+    <ion-button *ngIf="!deleteable" size="sm" expand="block" color="danger" (click)="dismiss()">
+      Close
+      <ion-icon slot="end" name="close"></ion-icon>
+    </ion-button>
+  </div>
+</ion-content>
+

@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar class="ion-bg-white">
+    <ion-title>Choose Duration</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        Close
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item *ngFor="let duration of durations; index as i" (click)="selectDuration(i)">
+    <div class="relative" slot="start">
+      <ion-checkbox [checked]="duration.selected"></ion-checkbox>
+      <div class="absolute top-0 left-0 w-full h-full z-10"></div>
+    </div>
+
+    <ion-label>{{ duration.duration }} Seconds</ion-label>
+
+    <ion-button slot="end" fill="clear" shape="round" color="danger" (click)="deleteDuration($event, i)">
+      <ion-icon slot="icon-only" name="trash"></ion-icon>
+    </ion-button>
+  </ion-item>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addDuration()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

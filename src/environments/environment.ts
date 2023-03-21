@@ -3,7 +3,24 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  schema: {
+    video: {
+      query: `
+        CREATE TABLE IF NOT EXISTS video(
+          name TEXT NOT NULL,
+          path TEXT NOT NULL,
+          url TEXT NOT NULL,
+          ctime INTEGER,
+          mtime INTEGER,
+          size INTEGER,
+          thumbnailPath TEXT,
+          thumbnailUrl TEXT
+        )
+      `,
+      version: 1
+    }
+  }
 };
 
 /*

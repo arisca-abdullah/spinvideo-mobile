@@ -1,20 +1,94 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="w-full p-4 flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+    <div class="w-full flex flex-col justify-center items-center">
+      <img class="w-3/5" src="assets/img/spinapp.png" alt="SpinApp">
+      <p *ngIf="ip && port" class="text-sm text-gray-500">Webserver running on <a class='text-sky-500 underline' [href]="'http://' + ip + ':' + port">http://{{ ip }}:{{ port }}</a></p>
+    </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <div class="w-full flex flex-col space-y-4">
+      <div class="relative w-full p-2 border border-gray-300 rounded-lg flex items-center space-x-2 ion-activatable ripple-parent overflow-hidden" (click)="chooseGateway()">
+        <p class="text-gray-500">Gateway</p>
+        <div class="flex-grow"></div>
+        <p>{{ gateway }}</p>
+        <ion-icon class="text-base" name="caret-down" color="medium"></ion-icon>
+        <ion-ripple-effect class="!m-0"></ion-ripple-effect>
+      </div>
+
+      <div class="relative w-full p-2 border border-gray-300 rounded-lg flex items-center space-x-2 ion-activatable ripple-parent overflow-hidden" (click)="chooseDuration()">
+        <p class="text-gray-500">Duration</p>
+        <div class="flex-grow"></div>
+        <p>{{ duration }} Seconds</p>
+        <ion-icon class="text-base" name="caret-down" color="medium"></ion-icon>
+        <ion-ripple-effect class="!m-0"></ion-ripple-effect>
+      </div>
+
+      <div class="relative w-full p-2 border border-gray-300 rounded-lg flex items-center space-x-2 ion-activatable ripple-parent overflow-hidden" (click)="chooseCountdown()">
+        <p class="text-gray-500">Countdown</p>
+        <div class="flex-grow"></div>
+        <p>{{ countdown }} Seconds</p>
+        <ion-icon class="text-base" name="caret-down" color="medium"></ion-icon>
+        <ion-ripple-effect class="!m-0"></ion-ripple-effect>
+      </div>
+
+      <div class="w-full flex justify-between space-x-2">
+        <ion-button class="w-1/2" expand="block" color="danger" (click)="recordVideo()">
+          <ion-icon slot="start" name="radio-button-on"></ion-icon>
+          Record Video
+        </ion-button>
+
+        <ion-button class="w-1/2" expand="block" (click)="openCameraSettings()">
+          <ion-icon slot="start" name="settings"></ion-icon>
+          Options
+        </ion-button>
+      </div>
+    </div>
   </div>
+
+  <h2 class="!m-0 p-4 pb-0 text-xl font-semibold">Local Videos</h2>
+
+  <div class="w-full p-4 flex flex-col space-y-4">
+    <div *ngFor="let video of videos.view" class="w-full flex items-center space-x-2" (click)="playVideo(video.url)">
+      <div class="relative min-w-[10rem] max-w-[10rem] aspect-video rounded-xl bg-black bg-opacity-80 overflow-hidden">
+        <img class="absolute w-full top-1/2 -translate-y-1/2" [src]="video.thumbnailUrl" alt="Video Thumbnail">
+      </div>
+
+      <div class="!min-w-0 flex-grow self-stretch flex flex-col justify-around space-y-2">
+        <h3 class="!m-0 text-sm font-semibold line-clamp-2">{{ video.name }}</h3>
+
+        <div class="w-full flex justify-between items-center">
+          <p class="!m-0 text-xs text-gray-500 line-clamp-2">{{ formatSize(video.size) }} MB</p>
+
+          <ion-button class="sm:hidden ion-no-padding ion-no-margin" fill="clear" shape="round" size="small" color="medium" (click)="showVideoInformation($event, video)">
+            <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <ion-button class="hidden sm:inline-block ion-no-padding ion-no-margin" fill="clear" shape="round" size="small" color="medium">
+        <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <ion-infinite-scroll position="bottom" (ionInfinite)="doInfinite($event)">
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>
+
+<div id="home-video-container" class="hidden fixed inset-0 z-10 pt-native-safe bg-black bg-opacity-50">
+  <div class="relative w-full h-full p-4 flex flex-col justify-center items-center">
+    <ion-fab vertical="top" horizontal="end" slot="fixed">
+      <ion-fab-button color="danger" size="small" (click)="hideVideoPlayer()">
+        <ion-icon name="close"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+    <video id="home-video-element" class="max-w-full max-h-full rounded-2xl overflow-hidden" controls controlsList="nodownload">
+      <source id="home-video-source">
+    </video>
+  </div>
+</div>

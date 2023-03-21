@@ -1,0 +1,37 @@
+<div style="position: relative; width: 100%; min-height: 100vh; display: flex; flex-direction: column;">
+  <div style="width: 100%; background: black; display: flex; flex-direction: column; flex-grow: 1;">
+    <div style="flex-grow: 1;"></div>
+    <video #video id="video" autoplay [muted]="true" [ngStyle]="{'aspect-ratio': aspectHeight / aspectWidth}"></video>
+    <div style="flex-grow: 1;"></div>
+
+    <div style="position: sticky; bottom: -1px; z-index: 10000; width: 100%; display: flex; flex-direction: column; justify-content: center;">
+      <div style="width: 100%; background: black; padding: 1rem; display: flex; align-items: center;">
+        <div style="position: relative; flex-grow: 1;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%);">
+            <p style="color: white; font-size: 1rem; line-height: 1.5rem;">{{ durations }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="!isRecording" style="width: 4rem; height: 4rem; border-radius: 100px; background-color: red; border: 2px solid white;" (click)="startRecordVideo()"></div>
+
+        <div *ngIf="isRecording" style="width: 4rem; height: 4rem; border-radius: 100px; background-color: white; border: 2px solid white; display: flex; justify-content: center; align-items: center;" (click)="stopRecordVideo()">
+          <ion-icon style="font-size: 1.5rem; line-height: 2rem;" name="stop" color="danger"></ion-icon>
+        </div>
+
+        <div style="position: relative; flex-grow: 1;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%);">
+            <div style="width: 3rem; height: 3rem; border-radius: 100px;" (click)="stopRecordVideo(true)">
+              <ion-icon style="font-size: 2.25rem; line-height: 2.5rem;" name="close" color="light"></ion-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="countdown && countdownInterval" style="position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div style="padding: 2rem ;background: rgba(0, 0, 0, .5); border-radius: 1rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <h2 style="color: white; font-size: 3rem; font-weight: 700;">{{ countdown }}</h2>
+    </div>
+  </div>
+</div>
