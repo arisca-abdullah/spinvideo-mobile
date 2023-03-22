@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 
+import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { NetworkInterface } from '@awesome-cordova-plugins/network-interface/ngx';
 import { SQLite } from '@awesome-cordova-plugins/sqlite/ngx';
 import { VideoEditor } from '@awesome-cordova-plugins/video-editor/ngx';
@@ -37,6 +38,7 @@ import { VideoRecorderComponentModule } from './components/video-recorder/video-
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    HTTP,
     NetworkInterface,
     SQLite,
     VideoEditor,

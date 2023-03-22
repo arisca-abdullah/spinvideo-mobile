@@ -6,6 +6,8 @@
   <div class="w-full p-4 flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
     <div class="w-full flex flex-col justify-center items-center">
       <img class="w-3/5" src="assets/img/spinapp.png" alt="SpinApp">
+      <p *ngIf="!ip" class="text-center text-sm text-rose-500">Please connect to local area network to enable file sharing!</p>
+      <p *ngIf="ip && !port" class="text-sm text-rose-500">Failed to start webserver</p>
       <p *ngIf="ip && port" class="text-sm text-gray-500">Webserver running on <a class='text-sky-500 underline' [href]="'http://' + ip + ':' + port">http://{{ ip }}:{{ port }}</a></p>
     </div>
 
@@ -13,6 +15,7 @@
       <div class="relative w-full p-2 border border-gray-300 rounded-lg flex items-center space-x-2 ion-activatable ripple-parent overflow-hidden" (click)="chooseGateway()">
         <p class="text-gray-500">Gateway</p>
         <div class="flex-grow"></div>
+        <div class="w-2 h-2 rounded-full" [ngClass]="[isGatewayOnline ? 'bg-emerald-500' : 'bg-rose-500']"></div>
         <p>{{ gateway }}</p>
         <ion-icon class="text-base" name="caret-down" color="medium"></ion-icon>
         <ion-ripple-effect class="!m-0"></ion-ripple-effect>
@@ -53,7 +56,7 @@
   <div class="w-full p-4 flex flex-col space-y-4">
     <div *ngFor="let video of videos.view" class="w-full flex items-center space-x-2" (click)="playVideo(video.url)">
       <div class="relative min-w-[10rem] max-w-[10rem] aspect-video rounded-xl bg-black bg-opacity-80 overflow-hidden">
-        <img class="absolute w-full top-1/2 -translate-y-1/2" [src]="video.thumbnailUrl" alt="Video Thumbnail">
+        <img class="absolute w-full top-1/2 -translate-y-1/2" [src]="video.thumbnailUrl" onerror="this.src='/assets/img/generating-thumbnail.png'" [alt]="video.name">
       </div>
 
       <div class="!min-w-0 flex-grow self-stretch flex flex-col justify-around space-y-2">

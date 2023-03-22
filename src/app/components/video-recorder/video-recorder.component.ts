@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { AlertController, LoadingController, NavParams, PopoverController } from '@ionic/angular';
@@ -46,6 +47,7 @@ export class VideoRecorderComponent implements OnInit, AfterViewInit, OnDestroy 
     private loadingCtrl: LoadingController,
     private navParams: NavParams,
     private popoverCtrl: PopoverController,
+    private http: HTTP,
     private shared: SharedService,
     private webServer: WebServerService
   ) { }
@@ -152,6 +154,8 @@ export class VideoRecorderComponent implements OnInit, AfterViewInit, OnDestroy 
         await this.shared.delay(this.countdown * 1000);
       }
 
+      this.setData();
+
       this.mediaRecorder = new MediaRecorder(this.cameraStream, { mimeType: 'video/webm' });
       this.mediaRecorder.addEventListener('dataavailable', event => this.recordedBlobs.push(event.data));
       this.mediaRecorder.addEventListener('stop', () => this.onRecorderStopped());
@@ -254,6 +258,16 @@ export class VideoRecorderComponent implements OnInit, AfterViewInit, OnDestroy 
       });
 
       alert.present();
+    }
+  }
+
+  private async setData() {
+    try {
+      const gateway = this.shared.gateways?.find(gateway => gateway.selected)?.gateway;
+      const response = await this.http.get(`${gateway}/setdata`, { status: 1 }, {});
+      console.log(response);
+    } catch (error) {
+      console.error(error);
     }
   }
 

@@ -120,7 +120,7 @@ export class SharedService {
     });
 
     this._gateways = gateways ? JSON.parse(gateways) : [
-      { gateway: 'http://192.168.4.6', selected: true }
+      { gateway: 'http://192.168.4.6:3000', selected: true }
     ];
 
     const { value: durations } = await Storage.get({

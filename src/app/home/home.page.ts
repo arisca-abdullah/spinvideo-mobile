@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { HTTP } from '@awesome-cordova-plugins/http/ngx';
 import { NetworkInterface } from '@awesome-cordova-plugins/network-interface/ngx';
 import { VideoEditor } from '@awesome-cordova-plugins/video-editor/ngx';
 import { App } from '@capacitor/app';
@@ -28,6 +29,7 @@ export class HomePage implements OnInit, OnDestroy {
   isLoading = true; // Initial loading indicator
   packageName?: string;
 
+  isGatewayOnline = false;
   gateway?: string;
   duration?: number;
   countdown?: number;
@@ -77,12 +79,15 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   networkListener?: PluginListenerHandle;
+  isPingPaused = false;
 
   constructor(
+    private ngZone: NgZone,
     private platform: Platform,
     private alertCtrl: AlertController,
     private modalCtrl: ModalController,
     private popoverCtrl: PopoverController,
+    private http: HTTP,
     private networkInterface: NetworkInterface,
     private videoEditor: VideoEditor,
     private database: DatabaseService,
@@ -100,7 +105,15 @@ export class HomePage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.platform.ready().finally(async () => {
-      this.getWiFiIPAddress();
+      Network
+        .getStatus()
+        .then(status => {
+          if (status.connectionType === 'wifi') {
+            this.getWiFiIPAddress();
+          } else {
+            this.getCarrierIPAddress();
+          }
+        })
 
       this.webServer.setStartCameraAction(() => this.recordVideo(true));
       this.startWebServer();
@@ -118,12 +131,28 @@ export class HomePage implements OnInit, OnDestroy {
       .catch(error => console.error(error));
 
     Network
-      .addListener('networkStatusChange', status => {
-        console.log(status);
-        this.getWiFiIPAddress().then(() => console.log(this.shared.ip));
-      })
+      .addListener('networkStatusChange', status => this.ngZone.run(() => {
+        if (status.connectionType === 'wifi') {
+          this.getWiFiIPAddress()
+        } else {
+          this.getCarrierIPAddress();
+        }
+      }))
       .then(listener => this.networkListener = listener)
       .catch(error => console.error(error));
+
+    setInterval(async () => {
+      this.isPingPaused = true;
+
+      try {
+        const response = await this.http.post(`${this.gateway}/ipcamera`, {}, {});
+        this.isGatewayOnline = true;
+        console.log(response);
+      } catch (error) {
+        this.isGatewayOnline = false;
+        console.error(error);
+      }
+    }, 5000);
   }
 
   ngOnDestroy() {}
@@ -238,13 +267,16 @@ export class HomePage implements OnInit, OnDestroy {
 
     videoRecorder.onDidDismiss().then(async result => {
       this.webServer.setStartCameraAction(() => this.recordVideo(true));
+      this.setData();
 
       if (result?.data) {
         try {
           const res = await this.database.insert('video', [result?.data]);
           this.generateThumbnail(result?.data)
           this.videos.cached.unshift(result?.data);
+          console.log(this.videos.cached);
           this.onSearch();
+          console.log(this.videos.view);
         } catch (error) {
           console.error(error)
         }
@@ -264,13 +296,17 @@ export class HomePage implements OnInit, OnDestroy {
       }
     });
 
-    cameraSettings.onDidDismiss().then(async result => {
-      if (result?.data) {
-        console.log(result?.data);
-      }
-    });
-
     await cameraSettings.present();
+  }
+
+  async getCarrierIPAddress() {
+    try {
+      const result = await this.networkInterface.getCarrierIPAddress();
+      this.shared.setIP(result.ip);
+    } catch (error) {
+      this.shared.setIP();
+      console.error(error)
+    }
   }
 
   async getWiFiIPAddress() {
@@ -451,11 +487,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     this.taskExecutor.interval = setInterval(() => {
       if (this.taskExecutor.tasks.length) {
-        this.taskExecutor.isPaused = true;
+        if (!this.taskExecutor.isPaused) {
+          this.taskExecutor.isPaused = true;
 
-        this.taskExecutor.tasks.shift()?.()
-          .catch(error => console.error(error))
-          .finally(() => this.taskExecutor.isPaused = false);
+          this.taskExecutor.tasks.shift()?.()
+            .catch(error => console.error(error))
+            .finally(() => this.taskExecutor.isPaused = false);
+        }
       } else if (this.taskExecutor.isAllowedToClearInterval) {
         clearInterval(this.taskExecutor.interval);
         this.taskExecutor.interval = null;
@@ -468,6 +506,10 @@ export class HomePage implements OnInit, OnDestroy {
       this.videos.source = [];
 
       const directories = [Directory.ExternalStorage, Directory.External];
+
+      if (Capacitor.getPlatform() === 'ios') {
+        directories.push(Directory.Library);
+      }
 
       for (const directory of directories) {
         try {
@@ -513,6 +555,15 @@ export class HomePage implements OnInit, OnDestroy {
     this.taskExecutor.isAllowedToClearInterval = true;
   }
 
+  private async setData() {
+    try {
+      const response = await this.http.get(`${this.gateway}/setdata`, { status: 0 }, {});
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   private async getCachedVideos() {
     try {
       this.videos.cached = await this.database.fetch(
@@ -548,10 +599,17 @@ export class HomePage implements OnInit, OnDestroy {
       video.thumbnailUrl = Capacitor.convertFileSrc(video.thumbnailPath);
 
       this.database
-        .update('video', video, {
-          query: 'path=?',
-          params: [video.path]
-        })
+        .update(
+          'video',
+          {
+            thumbnailPath: video.thumbnailPath,
+            thumbnailUrl: video.thumbnailUrl,
+          },
+          {
+            query: 'path=?',
+            params: [video.path]
+          }
+        )
         .catch(console.error);
     } catch (error) {
       console.error(error);
